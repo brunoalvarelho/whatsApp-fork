@@ -49,10 +49,8 @@ const InitialLayout = () => {
   useEffect(() => { if (loaded) { SplashScreen.hideAsync(); } }, [loaded]);
 
   useEffect(() => {
-    console.log('isLoaded', isLoaded);
     if (!isLoaded) return;
     console.log('isSignedIn', isSignedIn);
-
     if (isSignedIn && segments[0] !== 'tags') {
       router.replace("/(tabs)/chats")
     } else if (!isSignedIn) {
@@ -64,10 +62,11 @@ const InitialLayout = () => {
 
   return (
     <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="otp" options={{ headerTitle: "Enter Your Phone Number", headerBackVisible: false }} />
-        <Stack.Screen name="verify/[phone]" options={{ headerTitle: "Verify Phone Number", headerBackTitle: 'Edit number' }} />
-      </Stack>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="otp" options={{ headerTitle: "Enter Your Phone Number", headerBackVisible: false }} />
+      <Stack.Screen name="verify/[phone]" options={{ headerTitle: "Verify Phone Number", headerBackTitle: 'Edit number' }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    </Stack>
   );
 }
 

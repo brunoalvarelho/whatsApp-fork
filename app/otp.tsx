@@ -40,7 +40,7 @@ const Page = () => {
 
   const trySignIn = async () => {
     const { supportedFirstFactors } = await signIn!.create({identifier: phoneNumber});
-    const firstPhoneFactor: any = supportedFirstFactors.find((factor: any) => { factor.strategy === 'phone_code'});
+    const firstPhoneFactor: any = supportedFirstFactors.find(element => element["strategy"] === 'phone_code');
     const { phoneNumberId } = firstPhoneFactor;
     await signIn!.prepareFirstFactor({ strategy: 'phone_code', phoneNumberId,});
     router.push(`/verify/${phoneNumber}?signin=true`);
