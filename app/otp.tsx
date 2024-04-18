@@ -1,89 +1,118 @@
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, Linking, TouchableOpacity } from 'react-native';
-import { useState } from 'react';
-import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { View, Text, StyleSheet, Linking, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
 import MaskInput from 'react-native-mask-input';
+import { isClerkAPIResponseError, useSignIn, useSignUp } from '@clerk/clerk-expo';
+
+const FR_PHONE = ['+', '3', '3', ' ', /\d/, ' ', /\d/, /\d/, ' ', /\d/, /\d/, ' ', /\d/, /\d/, ' ', /\d/, /\d/]
 
 const Page = () => {
-  const route = useRouter();
-  const { bottom} = useSafeAreaInsets();
-  const keybordverticalOffset = Platform.OS === 'ios' ? 90 : 0;
-  const regex = /^\+33 \d{1} \d{2} \d{2} \d{2} \d{2}$/;
-
-  const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
+  const keyboardVerticalOffset = Platform.OS === 'ios' ? 90 : 0;
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const { signUp, setActive } = useSignUp();
+  const { signIn } = useSignIn();
 
-  const onPress = () => {
-    Linking.openURL('https://www.whatsapp.com/legal/#privacy-policy');
-  }
+  const openLink = () => { Linking.openURL('https://www.whatsapp.com/legal?eea=1');};
 
   const sendOTP = async () => {
-  }
+    setLoading(true);
+    try {
+      await signUp!.create({phoneNumber});
+      signUp!.preparePhoneNumberVerification();
+      router.push(`/verify/${phoneNumber}`);
+    } catch (err) {
+      console.log('error', JSON.stringify(err, null, 2));
+
+      if (isClerkAPIResponseError(err)) {
+        if (err.errors[0].code === 'form_identifier_exists') {
+          await trySignIn();
+        } else {
+          Alert.alert('Error', err.errors[0].message);
+        }
+      }
+    }
+    setLoading(false);
+  };
 
   const trySignIn = async () => {
-  }
-
+    const { supportedFirstFactors } = await signIn!.create({identifier: phoneNumber});
+    const firstPhoneFactor: any = supportedFirstFactors.find((factor: any) => { factor.strategy === 'phone_code'});
+    const { phoneNumberId } = firstPhoneFactor;
+    await signIn!.prepareFirstFactor({ strategy: 'phone_code', phoneNumberId,});
+    router.push(`/verify/${phoneNumber}?signin=true`);
+    setLoading(false);
+  };
 
   return (
-  <KeyboardAvoidingView style={{flex: 1}}>
-    <View style={styles.container}>
-      <Text style={styles.description}>
-        WhatsApp will need to verify your account. Carrier charges may apply.
-      </Text>
+    <KeyboardAvoidingView
+      keyboardVerticalOffset={keyboardVerticalOffset}
+      style={{ flex: 1 }}
+      behavior="padding">
+      {loading && (
+        <View style={[StyleSheet.absoluteFill, styles.loading]}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={{ fontSize: 18, padding: 10 }}>Sending code...</Text>
+        </View>
+      )}
 
-      <View style={styles.boutonBlock}>
-        <View style={styles.CountryBlock}>
-          <Text style={[styles.phoneInput, {fontWeight: 'bold'}]}>FR</Text>
-          <Ionicons name="chevron-down" size={24} color={Colors.primary} />
+      <View style={styles.container}>
+        <Text style={styles.description}>
+          WhatsApp will need to verify your account. Carrier charges may apply.
+        </Text>
+
+        <View style={styles.list}>
+          <View style={styles.listItem}>
+            <Text style={styles.listItemText}>French</Text>
+            <Ionicons name="chevron-forward" size={20} color={Colors.gray} />
+          </View>
+          <View style={styles.separator} />
+
+          <MaskInput
+            value={phoneNumber}
+            keyboardType="numeric"
+            autoFocus
+            placeholder="+10 your phone number"
+            onChangeText={(masked, unmasked) => {
+              setPhoneNumber(masked);
+            }}
+            mask={FR_PHONE}
+            style={styles.input}
+          />
         </View>
 
-        <View style={styles.separator}></View>
+        <Text style={styles.legal}>
+          You must be{' '}
+          <Text style={styles.link} onPress={openLink}>
+            at least 16 years old
+          </Text>{' '}
+          to register. Learn how WhatsApp works with the{' '}
+          <Text style={styles.link} onPress={openLink}>
+            Meta Companies
+          </Text>
+          .
+        </Text>
 
-        <MaskInput
-          style={styles.phoneInput}
-          value={phoneNumber}
-          onChangeText={(extracted) => setPhoneNumber(extracted)}
-          mask={['+', '3', '3', ' ', /\d/, ' ', /\d/, /\d/, ' ', /\d/, /\d/, ' ', /\d/, /\d/, ' ', /\d/, /\d/]}
-          keyboardType="number-pad"
-          placeholder="Phone number"
-          placeholderTextColor={Colors.gray}
-        />
+        <View style={{ flex: 1 }} />
+
+        <TouchableOpacity
+          style={[styles.button, phoneNumber !== '' ? styles.enabled : null, { marginBottom: 20 }]}
+          onPress={sendOTP}>
+          <Text style={[styles.buttonText, phoneNumber !== '' ? styles.enabled : null]}>Next</Text>
+        </TouchableOpacity>
       </View>
-
-      <Text style={styles.description}>
-        You must be{' '}
-        <Text style={styles.link} onPress={onPress}> at least 13 years old </Text>
-        {'to register. Learn how WhatsApp works with the'}
-        <Text style={styles.link} onPress={onPress}> Meta Companies </Text>
-        .
-      </Text>
-
-      <View style={{flex: 1}}/>
-
-      <TouchableOpacity
-        style={[
-          styles.button, regex.test(phoneNumber) ? styles.enabled : null,
-          { marginBottom: bottom + 10 }
-        ]}
-        disabled={regex.test(phoneNumber)}
-        onPress={sendOTP}>
-        <Text style={[styles.buttonText, regex.test(phoneNumber) ? styles.enabled : null ]}>Next</Text>
-      </TouchableOpacity>
-
-
-    </View>
-  </KeyboardAvoidingView>
+    </KeyboardAvoidingView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 40,
+    padding: 20,
     backgroundColor: Colors.background,
     gap: 20,
   },
@@ -115,29 +144,28 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '500',
   },
-  boutonBlock: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
+  list: {
     backgroundColor: '#fff',
     width: '100%',
     borderRadius: 10,
     padding: 10,
   },
-  CountryBlock: {
+  listItem: {
     flexDirection: 'row',
-    marginRight: 10,
-    marginVertical: 10,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 6,
+    marginBottom: 10,
   },
-  phoneInput: {
+  listItemText: {
     fontSize: 18,
     color: Colors.primary,
   },
   separator: {
-    height: '100%',
-    width: StyleSheet.hairlineWidth,
+    width: '100%',
+    height: 1,
     backgroundColor: Colors.gray,
-    opacity: 0.4,
-    marginRight: 10,
+    opacity: 0.2,
   },
   input: {
     backgroundColor: '#fff',
