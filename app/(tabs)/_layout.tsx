@@ -19,18 +19,14 @@ const Layout = () => {
           name="updates"
           options={{
             title: 'Updates',
-            tabBarIcon: ({ size, color }) => (
-              <MaterialIcons name="update" size={size} color={color} />
-            ),
+            tabBarIcon: ({ size, color }) => (<MaterialIcons name="update" size={size} color={color} />),
           }}
         />
         <Tabs.Screen
           name="calls"
           options={{
             title: 'Calls',
-            tabBarIcon: ({ size, color }) => (
-              <MaterialCommunityIcons name="phone-outline" size={size} color={color} />
-            ),
+            tabBarIcon: ({ size, color }) => (<MaterialCommunityIcons name="phone-outline" size={size} color={color} />),
             headerShown: false,
           }}
         />
@@ -38,23 +34,15 @@ const Layout = () => {
           name="communities"
           options={{
             title: 'Communities',
-            tabBarIcon: ({ size, color }) => (
-              <MaterialIcons name="people" size={size} color={color} />
-            ),
+            tabBarIcon: ({ size, color }) => (<MaterialIcons name="people" size={size} color={color} />),
           }}
         />
         <Tabs.Screen
           name="chats"
           options={{
             title: 'Chats',
-            tabBarIcon: ({ size, color }) => (
-              <Ionicons name="chatbubbles" size={size} color={color} />
-            ),
-            headerShown: true,
-            tabBarStyle: {
-              backgroundColor: Colors.background,
-              display: segments[2] === '[id]' ? 'none' : 'flex',
-            },
+            tabBarIcon: ({ size, color }) => (<Ionicons name="chatbubbles" size={size} color={color} />),
+            headerShown: false,
           }}
         />
 
