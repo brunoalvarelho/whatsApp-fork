@@ -10,6 +10,8 @@ const CallsLayout = () => {
         title: 'Calls',
         headerLargeTitle: true,
         headerShadowVisible: false,
+        // headerBlurEffect: 'regular',
+        // headerTransparent: true,
         headerStyle: { backgroundColor: Colors.background },
         headerRight: () => (
           <TouchableOpacity onPress={() => alert('New call')}>
