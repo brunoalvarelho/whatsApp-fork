@@ -126,7 +126,7 @@ const Page = () => {
       return (
         <View style={{ opacity: 0.8, backgroundColor: Colors.green, padding: 10, borderRadius: 10, margin: 10 }}>
           <Text style={{ fontWeight: 'bold'}}>{props.currentMessage.replyMessage.author}</Text>
-          <Text>{"props.currentMessage.replyMessage.text"}</Text>
+          <Text>{props.currentMessage.replyMessage.text}</Text>
         </View>
       );
     }
