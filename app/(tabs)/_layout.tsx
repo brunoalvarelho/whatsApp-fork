@@ -41,8 +41,12 @@ const Layout = () => {
           name="chats"
           options={{
             title: 'Chats',
-            tabBarIcon: ({ size, color }) => (<Ionicons name="chatbubbles" size={size} color={color} />),
             headerShown: false,
+            tabBarIcon: ({ size, color }) => (<Ionicons name="chatbubbles" size={size} color={color} />),
+            tabBarStyle: {
+              backgroundColor: Colors.background,
+              display: segments[2] === '[id]' ? 'none' : 'flex',
+            }
           }}
         />
 

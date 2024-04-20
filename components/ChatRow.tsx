@@ -19,7 +19,7 @@ export interface ChatRowProps {
 const ChatRow: FC<ChatRowProps> = ({ id, from, date, img, msg, unreadCount }) => {
   return (
     <AppleStyleSwipeableRow>
-      <Link href={"/(tabs)/chats"} asChild>
+      <Link href={`/(tabs)/chats/${id}`} asChild>
         <TouchableHighlight underlayColor={Colors.lightGray} activeOpacity={0.6}>
           <View style={styles.container}>
             <Image source={{ uri: img }} style={styles.avatar} />
