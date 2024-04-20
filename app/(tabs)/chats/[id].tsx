@@ -1,14 +1,26 @@
-import { Image, ImageBackground, StyleSheet, Text, View } from "react-native"
+import { ImageBackground, StyleSheet, Text, View } from "react-native"
 import messageData from "@/assets/data/messages.json"
-import { useCallback, useEffect, useState } from "react"
-import { GiftedChat, IMessage, Bubble, SystemMessage, Send, InputToolbar } from "react-native-gifted-chat"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { BubbleProps, GiftedChat, IMessage, Bubble, SystemMessage, Send, InputToolbar } from "react-native-gifted-chat"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import Colors from "@/constants/Colors"
 import { Ionicons } from "@expo/vector-icons"
+import { Swipeable } from "react-native-gesture-handler"
+import ChatMessageBox from "@/components/ChatMessageBox"
+import ReplyMessageBar from "@/components/ReplyMessageBar"
+
+type MyMessage = IMessage & {
+  replyMessage?: {
+    text: string;
+    author?: string;
+  };
+};
 
 const Page = () => {
-  const [messages, setMessages] = useState<IMessage[]>([]);
+  const [messages, setMessages] = useState<MyMessage[]>([]);
   const [text, setText] = useState('');
+  const [replyMessage, setReplyMessage] = useState<MyMessage | null>(null);
+  const swipeableRowRef = useRef<Swipeable | null>(null);
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -37,10 +49,25 @@ const Page = () => {
     ]);
   }, []);
 
-  const onSend = useCallback((messages = []) => {
-    console.log(messages)
-    setMessages(previousMessages => GiftedChat.append(previousMessages, messages))
-  }, [])
+  useEffect(() => {
+    if (replyMessage && swipeableRowRef.current) {
+      swipeableRowRef.current.close();
+      swipeableRowRef.current = null;
+    }
+  }, [replyMessage]);
+
+
+  const onSend = useCallback((messages: MyMessage[] = []) => {
+    if (replyMessage) messages[0].replyMessage = { text: replyMessage.text, author: replyMessage.user.name };
+    setMessages((previousMessages) => GiftedChat.append(previousMessages, messages));
+    setReplyMessage(null);
+  }, [replyMessage]);
+
+  const updateRowRef = useCallback((ref: any) => {
+    if (ref && replyMessage && ref.props.children.props.currentMessage?._id === replyMessage._id) {
+      swipeableRowRef.current = ref;
+    }
+  }, [replyMessage]);
 
   const renderInputToolbar = (props: any) => {
     return (
@@ -61,10 +88,11 @@ const Page = () => {
       <Bubble
         {...props}
         textStyle={{ right: { color: '#000' } }}
+        timeTextStyle={{ left: { color: Colors.gray }, right: { color: Colors.gray } }}
         wrapperStyle={{ left: { backgroundColor: '#fff' }, right: { backgroundColor: Colors.lightGreen } }}
       />
     );
-  }
+  };
 
   const renderSend = (props: any) => {
     return (
@@ -82,8 +110,27 @@ const Page = () => {
         )}
       </View>
     );
-  }
+  };
 
+  const renderMessage = (props: any) => {
+    return (
+      <ChatMessageBox {...props}
+        setReplyOnSwipeOpen={setReplyMessage}
+        updateRowRef={updateRowRef}
+      />
+    );
+  };
+
+  const renderReplyMessageView = (props: BubbleProps<MyMessage>) => {
+    if (props.currentMessage && props.currentMessage.replyMessage) {
+      return (
+        <View style={{ opacity: 0.8, backgroundColor: Colors.green, padding: 10, borderRadius: 10, margin: 10 }}>
+          <Text style={{ fontWeight: 'bold'}}>{props.currentMessage.replyMessage.author}</Text>
+          <Text>{"props.currentMessage.replyMessage.text"}</Text>
+        </View>
+      );
+    }
+  }
 
   return (
     <ImageBackground source={require('@/assets/images/pattern.png')}
@@ -96,13 +143,15 @@ const Page = () => {
         bottomOffset={insets.bottom}
         renderAvatar={null}
         maxComposerHeight={100}
+        textInputProps={styles.composer}
+        placeholder=""
         renderSystemMessage={(props) => (<SystemMessage {...props} textStyle={{ color: Colors.red }} />)}
+        renderChatFooter={() => (<ReplyMessageBar clearReply={() => setReplyMessage(null)} message={replyMessage} />)}
         renderBubble={renderBubble}
         renderSend={renderSend}
         renderInputToolbar={renderInputToolbar}
-        textInputProps={styles.composer }
-        placeholder=""
-
+        renderMessage={renderMessage}
+        renderCustomView={renderReplyMessageView}
       />
     </ImageBackground>
 
