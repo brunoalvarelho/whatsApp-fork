@@ -7,7 +7,7 @@ import Colors from "@/constants/Colors"
 import { Ionicons } from "@expo/vector-icons"
 
 const Page = () => {
-  const [ messages, setMessages ] = useState<IMessage[]>([]);
+  const [messages, setMessages] = useState<IMessage[]>([]);
   const [text, setText] = useState('');
   const insets = useSafeAreaInsets();
 
@@ -56,43 +56,53 @@ const Page = () => {
     );
   };
 
+  const renderBubble = (props: any) => {
+    return (
+      <Bubble
+        {...props}
+        textStyle={{ right: { color: '#000' } }}
+        wrapperStyle={{ left: { backgroundColor: '#fff' }, right: { backgroundColor: Colors.lightGreen } }}
+      />
+    );
+  }
+
+  const renderSend = (props: any) => {
+    return (
+      <View style={styles.send}>
+        {text === '' && (
+          <>
+            <Ionicons name="camera-outline" color={Colors.primary} size={28} />
+            <Ionicons name="mic-outline" color={Colors.primary} size={28} />
+          </>
+        )}
+        {text.length > 0 && (
+          <Send {...props} containerStyle={{ justifyContent: 'center' }}>
+            <Ionicons name="send" color={Colors.primary} size={28} />
+          </Send>
+        )}
+      </View>
+    );
+  }
+
+
   return (
     <ImageBackground source={require('@/assets/images/pattern.png')}
-      style={{ flex: 1 , marginBottom: insets.bottom, backgroundColor: Colors.background,}}>
+      style={{ flex: 1, marginBottom: insets.bottom, backgroundColor: Colors.background, }}>
       <GiftedChat
         messages={messages}
-        onSend={(messages:any) => onSend(messages)}
+        onSend={(messages: any) => onSend(messages)}
         onInputTextChanged={setText}
         user={{ _id: 1 }}
-        renderSystemMessage={(props) => ( <SystemMessage {...props} textStyle={{ color: Colors.red }} />)}
         bottomOffset={insets.bottom}
         renderAvatar={null}
         maxComposerHeight={100}
-        renderBubble={(props) => {
-          return (
-            <Bubble
-              {...props}
-              textStyle={{ right: { color: '#000' } }}
-              wrapperStyle={{ left: { backgroundColor: '#fff' }, right: { backgroundColor: Colors.lightGreen } }}
-            />
-          );
-        }}
-        renderSend={(props) => (
-          <View style={styles.send}>
-            {text === '' && (
-              <>
-                <Ionicons name="camera-outline" color={Colors.primary} size={28} />
-                <Ionicons name="mic-outline" color={Colors.primary} size={28} />
-              </>
-            )}
-            {text.length > 0 && (
-              <Send {...props} containerStyle={{ justifyContent: 'center' }}>
-                <Ionicons name="send" color={Colors.primary} size={28} />
-              </Send>
-            )}
-          </View>
-        )}
+        renderSystemMessage={(props) => (<SystemMessage {...props} textStyle={{ color: Colors.red }} />)}
+        renderBubble={renderBubble}
+        renderSend={renderSend}
         renderInputToolbar={renderInputToolbar}
+        textInputProps={styles.composer }
+        placeholder=""
+
       />
     </ImageBackground>
 
